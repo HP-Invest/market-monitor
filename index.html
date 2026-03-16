@@ -6,334 +6,376 @@
 <title>HP Market Monitor</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#090b0e;--bg2:#0f1218;--bg3:#161b22;--bg4:#1c2230;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#dde2ee;--text2:#7a8299;--text3:#444d63;--green:#00c97a;--green-dim:rgba(0,201,122,0.1);--amber:#f5a623;--amber-dim:rgba(245,166,35,0.1);--red:#ff4444;--red-dim:rgba(255,68,68,0.1);--blue:#4d9fff;--blue-dim:rgba(77,159,255,0.1);--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
+:root{--bg:#090b0e;--bg2:#0f1218;--bg3:#161b22;--bg4:#1c2230;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#dde2ee;--text2:#7a8299;--text3:#444d63;--green:#00c97a;--green-dim:rgba(0,201,122,0.1);--amber:#f5a623;--amber-dim:rgba(245,166,35,0.1);--red:#ff4444;--red-dim:rgba(255,68,68,0.1);--blue:#4d9fff;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh}
 body.flash{animation:flash 0.5s ease 4}
 @keyframes flash{0%,100%{background:var(--bg)}50%{background:#1a0505}}
 .tape{background:var(--bg3);border-bottom:1px solid var(--border);padding:7px 0;overflow:hidden;white-space:nowrap}
 .tape-inner{display:inline-block;animation:scroll 50s linear infinite}
 .tape-inner:hover{animation-play-state:paused}
-.tape-item{display:inline-block;font-family:var(--mono);font-size:11px;margin-right:36px}
-.tape-item .sym{color:var(--text2);margin-right:6px}
-.up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--amber)}
+.ti{display:inline-block;font-family:var(--mono);font-size:11px;margin-right:36px}
+.ti .sym{color:var(--text2);margin-right:6px}
+.up{color:var(--green)}.down{color:var(--red)}.neu{color:var(--amber)}
 @keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .wrap{max-width:1280px;margin:0 auto;padding:1.25rem 1.5rem}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
 .logo{font-family:var(--mono);font-size:12px;color:var(--text2);letter-spacing:.1em}
 .logo em{color:var(--green);font-style:normal}
-.header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,201,122,0.5)}50%{opacity:.6;box-shadow:0 0 0 4px rgba(0,201,122,0)}}
-.hstat{font-family:var(--mono);font-size:11px;color:var(--text3)}
-.hstat span{color:var(--text2)}
-.btn{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:5px 12px;border-radius:4px;cursor:pointer;transition:all .2s;letter-spacing:.05em}
+.hdr-r{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,201,122,.5)}50%{opacity:.6;box-shadow:0 0 0 4px rgba(0,201,122,0)}}
+.hs{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.hs span{color:var(--text2)}
+.btn{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:5px 12px;border-radius:4px;cursor:pointer;transition:all .2s}
 .btn:hover{color:var(--text);border-color:var(--text2)}
 .btn.on{background:var(--green-dim);border-color:rgba(0,201,122,.3);color:var(--green)}
-.alert-banner{display:none;background:var(--red-dim);border:1px solid rgba(255,68,68,.3);border-radius:6px;padding:10px 16px;margin-bottom:1.25rem;font-size:13px;align-items:center;gap:10px}
-.alert-banner.show{display:flex}
-.stocks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
-.scard{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;position:relative;overflow:hidden}
-.scard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.scard.c-red::after{background:var(--red)}.scard.c-amber::after{background:var(--amber)}.scard.c-green::after{background:var(--green)}
-.scard.c-red{border-color:rgba(255,68,68,.2)}
-.scard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.scard-ticker{font-family:var(--mono);font-size:16px;font-weight:500}
-.scard-exchange{font-size:10px;color:var(--text3);margin-top:2px}
-.risk-pill{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:3px}
-.risk-pill.high{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,68,68,.2)}
-.risk-pill.medium{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
-.risk-pill.low{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,201,122,.2)}
-.scard-price{font-family:var(--mono);font-size:28px;font-weight:500;margin-bottom:2px}
-.scard-change{font-family:var(--mono);font-size:12px;margin-bottom:10px}
-.scard-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
-.session-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.session-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
-.session-val{font-family:var(--mono);font-size:11px}
-.session-chg{font-family:var(--mono);font-size:10px;margin-left:5px}
-.loading{color:var(--text3);font-family:var(--mono);font-size:12px}
-.volume-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
-.vcard{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem}
-.vcard-title{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;justify-content:space-between}
-.vbar-wrap{margin-bottom:10px}
-.vbar-label{display:flex;justify-content:space-between;margin-bottom:4px}
-.vbar-name{font-size:11px;color:var(--text2)}
-.vbar-val{font-family:var(--mono);font-size:11px}
-.vbar-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
-.vbar-fill{height:100%;border-radius:3px;transition:width 1s ease}
-.vbar-fill.reg{background:var(--blue)}.vbar-fill.dark{background:var(--amber)}.vbar-fill.short{background:var(--red)}
-.explain-box{background:var(--bg4);border-radius:5px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.6;border-left:2px solid var(--border2)}
-.explain-box strong{color:var(--text);font-weight:500}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
-.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.panel-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.panel-title{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
-.panel-body{padding:12px 14px}
-.risk-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.risk-row:last-child{margin-bottom:0}
-.risk-name{font-size:12px;color:var(--text2);min-width:140px}
-.risk-track{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
-.risk-fill{height:100%;border-radius:2px}
-.risk-fill.high{background:var(--red)}.risk-fill.medium{background:var(--amber)}.risk-fill.low{background:var(--green)}
-.risk-pct{font-family:var(--mono);font-size:11px;min-width:36px;text-align:right}
-.risk-pct.high{color:var(--red)}.risk-pct.medium{color:var(--amber)}.risk-pct.low{color:var(--green)}
-.news-list{max-height:340px;overflow-y:auto}
-.news-list::-webkit-scrollbar{width:3px}
-.news-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.news-item{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px}
-.news-item:last-child{border-bottom:none}
-.news-item:hover{background:var(--bg3)}
-.ndot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0}
-.ndot.high{background:var(--red);box-shadow:0 0 5px var(--red)}.ndot.medium{background:var(--amber)}.ndot.low{background:var(--green)}
-.nhead{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:3px}
-.nmeta{font-size:10px;color:var(--text3);font-family:var(--mono)}
-.ntag{font-size:10px;font-family:var(--mono);padding:1px 5px;border-radius:3px;margin-right:4px}
-.ntag.nio{background:rgba(255,68,68,.1);color:#ff8080}.ntag.byd{background:var(--green-dim);color:var(--green)}.ntag.xmi{background:var(--blue-dim);color:var(--blue)}.ntag.geo{background:var(--amber-dim);color:var(--amber)}.ntag.reg{background:var(--red-dim);color:var(--red)}
-.kw-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-bottom:1.25rem}
-.kw-title{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.kw-tags{display:flex;flex-wrap:wrap;gap:7px}
-.kw-tag{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border2);padding:3px 10px;border-radius:3px;color:var(--text2)}
-.kw-tag.hit{background:var(--red-dim);border-color:rgba(255,68,68,.3);color:var(--red)}
-.links-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-bottom:1.25rem}
-.links-title{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.links-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.link-card{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;text-decoration:none;transition:border-color .2s;display:block}
-.link-card:hover{border-color:var(--border2)}
-.link-card-title{font-size:12px;color:var(--text);margin-bottom:2px;font-weight:500}
-.link-card-desc{font-size:10px;color:var(--text3)}
-.footer{border-top:1px solid var(--border);padding-top:1rem;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text3);flex-wrap:wrap;gap:8px}
-.controls{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
-.ctrl-label{font-size:11px;color:var(--text3)}
-@media(max-width:768px){.stocks-grid,.volume-grid,.two-col{grid-template-columns:1fr}.links-grid{grid-template-columns:repeat(2,1fr)}}
+.btn.red{background:var(--red-dim);border-color:rgba(255,68,68,.3);color:var(--red)}
+.abanner{display:none;background:var(--red-dim);border:1px solid rgba(255,68,68,.3);border-radius:6px;padding:10px 16px;margin-bottom:1.25rem;font-size:13px;align-items:center;gap:10px}
+.abanner.show{display:flex}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.cr::after{background:var(--red)}.sc.ca::after{background:var(--amber)}.sc.cg::after{background:var(--green)}
+.sc.cr{border-color:rgba(255,68,68,.2)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.sc-tick{font-family:var(--mono);font-size:16px;font-weight:500}
+.sc-exch{font-size:10px;color:var(--text3);margin-top:2px}
+.rp{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:3px}
+.rp.h{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,68,68,.2)}
+.rp.m{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.rp.l{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,201,122,.2)}
+.sc-price{font-family:var(--mono);font-size:28px;font-weight:500;margin-bottom:2px}
+.sc-chg{font-family:var(--mono);font-size:12px;margin-bottom:10px;min-height:18px}
+.divdr{border:none;border-top:1px solid var(--border);margin:8px 0}
+.srow{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.slbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.sval{font-family:var(--mono);font-size:11px}
+.schg{font-family:var(--mono);font-size:10px;margin-left:5px}
+.note{font-size:11px;color:var(--text3);margin-bottom:1.25rem;font-family:var(--mono)}
+.note a{color:var(--blue);text-decoration:none}
+.note a:hover{text-decoration:underline}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
+.vc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem}
+.vct{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;justify-content:space-between}
+.vbw{margin-bottom:10px}
+.vbl{display:flex;justify-content:space-between;margin-bottom:4px}
+.vbn{font-size:11px;color:var(--text2)}
+.vbv{font-family:var(--mono);font-size:11px}
+.vbt{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.vbf{height:100%;border-radius:3px;transition:width 1s ease}
+.vbf.reg{background:var(--blue)}.vbf.drk{background:var(--amber)}.vbf.sht{background:var(--red)}
+.expl{background:var(--bg4);border-radius:5px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.6;border-left:2px solid var(--border2)}
+.expl strong{color:var(--text);font-weight:500}
+.tcol{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+.pnl{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.ph{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.pt{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
+.pb{padding:12px 14px}
+.rr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rr:last-child{margin-bottom:0}
+.rn{font-size:12px;color:var(--text2);min-width:140px}
+.rtr{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.rf{height:100%;border-radius:2px}
+.rf.h{background:var(--red)}.rf.m{background:var(--amber)}.rf.l{background:var(--green)}
+.rpc{font-family:var(--mono);font-size:11px;min-width:36px;text-align:right}
+.rpc.h{color:var(--red)}.rpc.m{color:var(--amber)}.rpc.l{color:var(--green)}
+.nl{max-height:340px;overflow-y:auto}
+.nl::-webkit-scrollbar{width:3px}
+.nl::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.ni{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px}
+.ni:last-child{border-bottom:none}.ni:hover{background:var(--bg3)}
+.nd{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.nd.h{background:var(--red);box-shadow:0 0 5px var(--red)}.nd.m{background:var(--amber)}.nd.l{background:var(--green)}
+.nh{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:3px}
+.nm{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.nt{font-size:10px;font-family:var(--mono);padding:1px 5px;border-radius:3px;margin-right:4px}
+.nt.nio{background:rgba(255,68,68,.1);color:#ff8080}.nt.byd{background:var(--green-dim);color:var(--green)}.nt.xmi{background:rgba(77,159,255,.1);color:var(--blue)}.nt.geo{background:var(--amber-dim);color:var(--amber)}.nt.reg{background:var(--red-dim);color:var(--red)}
+.kwp{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-bottom:1.25rem}
+.kwt{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.kwtags{display:flex;flex-wrap:wrap;gap:7px}
+.kwtag{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border2);padding:3px 10px;border-radius:3px;color:var(--text2)}
+.kwtag.hit{background:var(--red-dim);border-color:rgba(255,68,68,.3);color:var(--red)}
+.lkp{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-bottom:1.25rem}
+.lkt{font-family:var(--mono);font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.lkg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.lkc{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;text-decoration:none;display:block;transition:border-color .2s}
+.lkc:hover{border-color:var(--border2)}
+.lkct{font-size:12px;color:var(--text);margin-bottom:2px;font-weight:500}
+.lkcd{font-size:10px;color:var(--text3)}
+.ftr{border-top:1px solid var(--border);padding-top:1rem;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text3);flex-wrap:wrap;gap:8px}
+@media(max-width:768px){.sgrid,.vgrid,.tcol{grid-template-columns:1fr}.lkg{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<div class="tape"><div class="tape-inner" id="tapeInner">
-<span class="tape-item"><span class="sym">NIO</span><span id="t-nio" class="up">loading...</span></span>
-<span class="tape-item"><span class="sym">BYD</span><span id="t-byd" class="up">loading...</span></span>
-<span class="tape-item"><span class="sym">XIACF</span><span id="t-xmi" class="up">loading...</span></span>
-<span class="tape-item"><span class="sym">HFCAA RISK</span><span class="neutral">ELEVATED</span></span>
-<span class="tape-item"><span class="sym">PCAOB AUDIT</span><span class="neutral">Q3 2026</span></span>
-<span class="tape-item"><span class="sym">US-CHINA</span><span class="down">TENSIONS HIGH</span></span>
-<span class="tape-item"><span class="sym">NIO</span><span id="t-nio2" class="up">loading...</span></span>
-<span class="tape-item"><span class="sym">BYD</span><span id="t-byd2" class="up">loading...</span></span>
-<span class="tape-item"><span class="sym">XIACF</span><span id="t-xmi2" class="up">loading...</span></span>
-<span class="tape-item"><span class="sym">HFCAA RISK</span><span class="neutral">ELEVATED</span></span>
-<span class="tape-item"><span class="sym">PCAOB AUDIT</span><span class="neutral">Q3 2026</span></span>
-<span class="tape-item"><span class="sym">US-CHINA</span><span class="down">TENSIONS HIGH</span></span>
+
+<div class="tape"><div class="tape-inner">
+<span class="ti"><span class="sym">NIO</span><span id="t1" class="neu">--</span></span>
+<span class="ti"><span class="sym">BYDDY</span><span id="t2" class="neu">--</span></span>
+<span class="ti"><span class="sym">XIACF</span><span id="t3" class="neu">--</span></span>
+<span class="ti"><span class="sym">HFCAA RISK</span><span class="neu">ELEVATED</span></span>
+<span class="ti"><span class="sym">PCAOB AUDIT</span><span class="neu">Q3 2026</span></span>
+<span class="ti"><span class="sym">US-CHINA</span><span class="down">TENSIONS HIGH</span></span>
+<span class="ti"><span class="sym">NIO</span><span id="t4" class="neu">--</span></span>
+<span class="ti"><span class="sym">BYDDY</span><span id="t5" class="neu">--</span></span>
+<span class="ti"><span class="sym">XIACF</span><span id="t6" class="neu">--</span></span>
+<span class="ti"><span class="sym">HFCAA RISK</span><span class="neu">ELEVATED</span></span>
+<span class="ti"><span class="sym">PCAOB AUDIT</span><span class="neu">Q3 2026</span></span>
+<span class="ti"><span class="sym">US-CHINA</span><span class="down">TENSIONS HIGH</span></span>
 </div></div>
 
 <div class="wrap">
-<div class="header">
+<div class="hdr">
   <div class="logo"><em>▲</em> HP MARKET MONITOR · NIO / BYD / XIAOMI</div>
-  <div class="header-right">
-    <div class="hstat"><span class="live-dot"></span><span>LIVE</span></div>
-    <div class="hstat">REFRESH IN <span id="countdown">5:00</span></div>
-    <div class="hstat" id="lastUpdated">--:--</div>
-    <button class="btn" id="soundBtn" onclick="toggleSound()">SOUND OFF</button>
-    <button class="btn" onclick="testAlert()">TEST ALERT</button>
+  <div class="hdr-r">
+    <div class="hs"><span class="ldot"></span><span>LIVE</span></div>
+    <div class="hs">REFRESH IN <span id="cd">5:00</span></div>
+    <div class="hs" id="lu">--:--</div>
+    <button class="btn" id="sndBtn" onclick="toggleSound()">🔇 SOUND OFF</button>
+    <button class="btn red" onclick="testAlert()">⚠ TEST ALERT</button>
   </div>
 </div>
 
-<div class="alert-banner" id="alertBanner">
-  <span style="color:var(--red);font-size:15px;flex-shrink:0">⚠</span>
-  <div><strong style="color:var(--red)">HIGH RISK ALERT — </strong><span id="alertMsg">Critical keyword detected</span></div>
+<div class="abanner" id="ab">
+  <span style="color:var(--red);font-size:16px;flex-shrink:0">⚠</span>
+  <div><strong style="color:var(--red)">HIGH RISK ALERT — </strong><span id="amsg">Critical keyword detected</span></div>
 </div>
 
-<div class="controls">
-  <span class="ctrl-label">Data: Yahoo Finance (15min delay) · Pre/after-market shown when available · Dark pool & shorts via quick links below</span>
+<div class="note">
+  Prices load via Yahoo Finance (15min delay) · If prices show "--" click the Yahoo Finance links below to view live · Pre/after-market shown when available
 </div>
 
-<div class="stocks-grid">
-  <div class="scard c-red">
-    <div class="scard-top">
-      <div><div class="scard-ticker">NIO</div><div class="scard-exchange">NIO Inc. · NYSE · Chinese EV</div></div>
-      <div class="risk-pill high">HIGH RISK</div>
-    </div>
-    <div class="scard-price" id="nio-price">--</div>
-    <div class="scard-change" id="nio-change"><span class="loading">fetching...</span></div>
-    <hr class="scard-divider">
-    <div class="session-row"><span class="session-label">Pre-market</span><span><span class="session-val" id="nio-pre">--</span><span class="session-chg" id="nio-pre-chg"></span></span></div>
-    <div class="session-row"><span class="session-label">After-hours</span><span><span class="session-val" id="nio-after">--</span><span class="session-chg" id="nio-after-chg"></span></span></div>
-    <div class="session-row"><span class="session-label">52w Range</span><span class="session-val" id="nio-range" style="font-size:10px">--</span></div>
-    <div class="session-row"><span class="session-label">Volume</span><span class="session-val" id="nio-vol">--</span></div>
+<div class="sgrid">
+  <div class="sc cr">
+    <div class="sc-top"><div><div class="sc-tick">NIO</div><div class="sc-exch">NIO Inc. · NYSE · Chinese EV</div></div><div class="rp h">HIGH RISK</div></div>
+    <div class="sc-price" id="np">--</div>
+    <div class="sc-chg" id="nc"><span class="neu">loading...</span></div>
+    <hr class="divdr">
+    <div class="srow"><span class="slbl">Pre-market</span><span><span class="sval" id="np-pre">--</span><span class="schg" id="np-prec"></span></span></div>
+    <div class="srow"><span class="slbl">After-hours</span><span><span class="sval" id="np-aft">--</span><span class="schg" id="np-aftc"></span></span></div>
+    <div class="srow"><span class="slbl">52w Range</span><span class="sval" id="np-rng" style="font-size:10px">--</span></div>
+    <div class="srow"><span class="slbl">Volume</span><span class="sval" id="np-vol">--</span></div>
+    <div style="margin-top:8px"><a href="https://finance.yahoo.com/quote/NIO/" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--blue);text-decoration:none">View live on Yahoo Finance →</a></div>
   </div>
-  <div class="scard c-amber">
-    <div class="scard-top">
-      <div><div class="scard-ticker">BYDDY</div><div class="scard-exchange">BYD Co. · OTC · Chinese EV</div></div>
-      <div class="risk-pill medium">MED RISK</div>
-    </div>
-    <div class="scard-price" id="byd-price">--</div>
-    <div class="scard-change" id="byd-change"><span class="loading">fetching...</span></div>
-    <hr class="scard-divider">
-    <div class="session-row"><span class="session-label">Pre-market</span><span><span class="session-val" id="byd-pre">--</span><span class="session-chg" id="byd-pre-chg"></span></span></div>
-    <div class="session-row"><span class="session-label">After-hours</span><span><span class="session-val" id="byd-after">--</span><span class="session-chg" id="byd-after-chg"></span></span></div>
-    <div class="session-row"><span class="session-label">52w Range</span><span class="session-val" id="byd-range" style="font-size:10px">--</span></div>
-    <div class="session-row"><span class="session-label">Volume</span><span class="session-val" id="byd-vol">--</span></div>
+  <div class="sc ca">
+    <div class="sc-top"><div><div class="sc-tick">BYDDY</div><div class="sc-exch">BYD Co. · OTC · Chinese EV</div></div><div class="rp m">MED RISK</div></div>
+    <div class="sc-price" id="bp">--</div>
+    <div class="sc-chg" id="bc"><span class="neu">loading...</span></div>
+    <hr class="divdr">
+    <div class="srow"><span class="slbl">Pre-market</span><span><span class="sval" id="bp-pre">--</span><span class="schg" id="bp-prec"></span></span></div>
+    <div class="srow"><span class="slbl">After-hours</span><span><span class="sval" id="bp-aft">--</span><span class="schg" id="bp-aftc"></span></span></div>
+    <div class="srow"><span class="slbl">52w Range</span><span class="sval" id="bp-rng" style="font-size:10px">--</span></div>
+    <div class="srow"><span class="slbl">Volume</span><span class="sval" id="bp-vol">--</span></div>
+    <div style="margin-top:8px"><a href="https://finance.yahoo.com/quote/BYDDY/" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--blue);text-decoration:none">View live on Yahoo Finance →</a></div>
   </div>
-  <div class="scard c-green">
-    <div class="scard-top">
-      <div><div class="scard-ticker">XIACF</div><div class="scard-exchange">Xiaomi Corp. · OTC · Chinese Tech/EV</div></div>
-      <div class="risk-pill low">LOW RISK</div>
-    </div>
-    <div class="scard-price" id="xmi-price">--</div>
-    <div class="scard-change" id="xmi-change"><span class="loading">fetching...</span></div>
-    <hr class="scard-divider">
-    <div class="session-row"><span class="session-label">Pre-market</span><span><span class="session-val" id="xmi-pre">--</span><span class="session-chg" id="xmi-pre-chg"></span></span></div>
-    <div class="session-row"><span class="session-label">After-hours</span><span><span class="session-val" id="xmi-after">--</span><span class="session-chg" id="xmi-after-chg"></span></span></div>
-    <div class="session-row"><span class="session-label">52w Range</span><span class="session-val" id="xmi-range" style="font-size:10px">--</span></div>
-    <div class="session-row"><span class="session-label">Volume</span><span class="session-val" id="xmi-vol">--</span></div>
+  <div class="sc cg">
+    <div class="sc-top"><div><div class="sc-tick">XIACF</div><div class="sc-exch">Xiaomi Corp. · OTC · Chinese Tech/EV</div></div><div class="rp l">LOW RISK</div></div>
+    <div class="sc-price" id="xp">--</div>
+    <div class="sc-chg" id="xc"><span class="neu">loading...</span></div>
+    <hr class="divdr">
+    <div class="srow"><span class="slbl">Pre-market</span><span><span class="sval" id="xp-pre">--</span><span class="schg" id="xp-prec"></span></span></div>
+    <div class="srow"><span class="slbl">After-hours</span><span><span class="sval" id="xp-aft">--</span><span class="schg" id="xp-aftc"></span></span></div>
+    <div class="srow"><span class="slbl">52w Range</span><span class="sval" id="xp-rng" style="font-size:10px">--</span></div>
+    <div class="srow"><span class="slbl">Volume</span><span class="sval" id="xp-vol">--</span></div>
+    <div style="margin-top:8px"><a href="https://finance.yahoo.com/quote/XIACF/" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--blue);text-decoration:none">View live on Yahoo Finance →</a></div>
   </div>
 </div>
 
-<div class="volume-grid">
-  <div class="vcard">
-    <div class="vcard-title"><span>Regular Volume — NIO</span><span style="color:var(--blue)">vs avg</span></div>
-    <div class="vbar-wrap">
-      <div class="vbar-label"><span class="vbar-name">Today's volume</span><span class="vbar-val up" id="vol-nio-today">--</span></div>
-      <div class="vbar-track"><div class="vbar-fill reg" id="vol-nio-bar" style="width:0%"></div></div>
-    </div>
-    <div class="vbar-wrap">
-      <div class="vbar-label"><span class="vbar-name">3 month average</span><span class="vbar-val" id="vol-nio-avg">--</span></div>
-      <div class="vbar-track"><div class="vbar-fill reg" style="width:100%;opacity:.25"></div></div>
-    </div>
-    <div class="explain-box"><strong>What this means:</strong> Volume = how many shares were traded today. If today's bar is bigger than average, something is happening — big news, a major buyer, or panic selling. Low volume = quiet day, less reliable price moves.</div>
+<div class="vgrid">
+  <div class="vc">
+    <div class="vct"><span>Regular Volume — NIO</span><span style="color:var(--blue)">vs avg</span></div>
+    <div class="vbw"><div class="vbl"><span class="vbn">Today's volume</span><span class="vbv up" id="vn-t">--</span></div><div class="vbt"><div class="vbf reg" id="vn-b" style="width:0%"></div></div></div>
+    <div class="vbw"><div class="vbl"><span class="vbn">3 month average</span><span class="vbv" id="vn-a">--</span></div><div class="vbt"><div class="vbf reg" style="width:100%;opacity:.2"></div></div></div>
+    <div class="expl"><strong>What this means:</strong> Volume = shares traded today. If today's bar is bigger than average, something big is happening — news, a major buyer, or panic selling. Low volume = quiet day, less reliable moves.</div>
   </div>
-  <div class="vcard">
-    <div class="vcard-title"><span>Dark Pool Activity</span><span style="color:var(--amber)">estimated</span></div>
-    <div class="vbar-wrap">
-      <div class="vbar-label"><span class="vbar-name">NIO dark pool % (est.)</span><span class="vbar-val neutral">~45%</span></div>
-      <div class="vbar-track"><div class="vbar-fill dark" style="width:45%"></div></div>
-    </div>
-    <div class="vbar-wrap">
-      <div class="vbar-label"><span class="vbar-name">Market average</span><span class="vbar-val" style="color:var(--text2)">~35%</span></div>
-      <div class="vbar-track"><div class="vbar-fill dark" style="width:35%;opacity:.25"></div></div>
-    </div>
-    <div class="explain-box"><strong>What is a dark pool?</strong> Big banks trade secretly away from the public market. High dark pool activity on NIO means big money is moving quietly — could be buying before good news, or selling before bad. Click Fintel link below for live figures.</div>
+  <div class="vc">
+    <div class="vct"><span>Dark Pool Activity</span><span style="color:var(--amber)">estimated</span></div>
+    <div class="vbw"><div class="vbl"><span class="vbn">NIO dark pool % (est.)</span><span class="vbv neu">~45%</span></div><div class="vbt"><div class="vbf drk" style="width:45%"></div></div></div>
+    <div class="vbw"><div class="vbl"><span class="vbn">Market average</span><span class="vbv" style="color:var(--text2)">~35%</span></div><div class="vbt"><div class="vbf drk" style="width:35%;opacity:.2"></div></div></div>
+    <div class="expl"><strong>What is a dark pool?</strong> Big banks trade secretly away from the public market. High dark pool on NIO = big money moving quietly. Could be buying before good news or selling before bad. Click Fintel below for live data.</div>
   </div>
-  <div class="vcard">
-    <div class="vcard-title"><span>Short Interest</span><span style="color:var(--red)">bearish signal</span></div>
-    <div class="vbar-wrap">
-      <div class="vbar-label"><span class="vbar-name">NIO short % of float</span><span class="vbar-val down">~8.2%</span></div>
-      <div class="vbar-track"><div class="vbar-fill short" style="width:41%"></div></div>
-    </div>
-    <div class="vbar-wrap">
-      <div class="vbar-label"><span class="vbar-name">Danger zone starts at</span><span class="vbar-val" style="color:var(--text2)">20%+</span></div>
-      <div class="vbar-track"><div class="vbar-fill short" style="width:100%;opacity:.1"></div></div>
-    </div>
-    <div class="explain-box"><strong>What are shorts?</strong> Shorting = betting the price will drop. Above 20% short interest = danger, many people expect a fall. Below 10% = fairly normal. Watch for sudden spikes. Click Fintel or Chartmill below for live data.</div>
+  <div class="vc">
+    <div class="vct"><span>Short Interest</span><span style="color:var(--red)">bearish signal</span></div>
+    <div class="vbw"><div class="vbl"><span class="vbn">NIO short % of float</span><span class="vbv down">~8.2%</span></div><div class="vbt"><div class="vbf sht" style="width:41%"></div></div></div>
+    <div class="vbw"><div class="vbl"><span class="vbn">Danger zone</span><span class="vbv" style="color:var(--text2)">20%+</span></div><div class="vbt"><div class="vbf sht" style="width:100%;opacity:.08"></div></div></div>
+    <div class="expl"><strong>What are shorts?</strong> Shorting = betting the price drops. Above 20% = danger, many expect a fall. Below 10% = fairly normal. Watch for sudden spikes. Click Fintel or Chartmill below for live data.</div>
   </div>
 </div>
 
-<div class="two-col">
-  <div class="panel">
-    <div class="panel-hdr"><div class="panel-title">Delisting risk matrix</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)" id="riskTime">--</div></div>
-    <div class="panel-body">
-      <div class="risk-row"><div class="risk-name">NIO — Financial health</div><div class="risk-track"><div class="risk-fill high" style="width:72%"></div></div><div class="risk-pct high">72%</div></div>
-      <div class="risk-row"><div class="risk-name">NIO — Geopolitical</div><div class="risk-track"><div class="risk-fill medium" style="width:55%"></div></div><div class="risk-pct medium">55%</div></div>
-      <div class="risk-row"><div class="risk-name">NIO — PCAOB audit</div><div class="risk-track"><div class="risk-fill medium" style="width:42%"></div></div><div class="risk-pct medium">42%</div></div>
-      <div class="risk-row"><div class="risk-name">BYD — Geopolitical</div><div class="risk-track"><div class="risk-fill medium" style="width:35%"></div></div><div class="risk-pct medium">35%</div></div>
-      <div class="risk-row"><div class="risk-name">BYD — Financial health</div><div class="risk-track"><div class="risk-fill low" style="width:12%"></div></div><div class="risk-pct low">12%</div></div>
-      <div class="risk-row"><div class="risk-name">Xiaomi — Overall</div><div class="risk-track"><div class="risk-fill low" style="width:22%"></div></div><div class="risk-pct low">22%</div></div>
-      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);line-height:1.8">
-        <span style="color:var(--red)">■</span> HIGH = Act immediately if triggered &nbsp;
-        <span style="color:var(--amber)">■</span> MEDIUM = Watch closely &nbsp;
-        <span style="color:var(--green)">■</span> LOW = Monitor only
+<div class="tcol">
+  <div class="pnl">
+    <div class="ph"><div class="pt">Delisting risk matrix</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)" id="rt">--</div></div>
+    <div class="pb">
+      <div class="rr"><div class="rn">NIO — Financial health</div><div class="rtr"><div class="rf h" style="width:72%"></div></div><div class="rpc h">72%</div></div>
+      <div class="rr"><div class="rn">NIO — Geopolitical</div><div class="rtr"><div class="rf m" style="width:55%"></div></div><div class="rpc m">55%</div></div>
+      <div class="rr"><div class="rn">NIO — PCAOB audit</div><div class="rtr"><div class="rf m" style="width:42%"></div></div><div class="rpc m">42%</div></div>
+      <div class="rr"><div class="rn">BYD — Geopolitical</div><div class="rtr"><div class="rf m" style="width:35%"></div></div><div class="rpc m">35%</div></div>
+      <div class="rr"><div class="rn">BYD — Financial health</div><div class="rtr"><div class="rf l" style="width:12%"></div></div><div class="rpc l">12%</div></div>
+      <div class="rr"><div class="rn">Xiaomi — Overall</div><div class="rtr"><div class="rf l" style="width:22%"></div></div><div class="rpc l">22%</div></div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);line-height:1.9">
+        <span style="color:var(--red)">■</span> HIGH = Act immediately &nbsp;<span style="color:var(--amber)">■</span> MEDIUM = Watch closely &nbsp;<span style="color:var(--green)">■</span> LOW = Monitor only
       </div>
     </div>
   </div>
-  <div class="panel">
-    <div class="panel-hdr"><div class="panel-title">News alerts</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">5 items</div></div>
-    <div class="news-list">
-      <div class="news-item"><div class="ndot high"></div><div><div class="nhead"><span class="ntag nio">NIO</span>NIO posts wider Q4 loss — delivery growth slows despite new models</div><div class="nmeta">Reuters · 2h ago</div></div></div>
-      <div class="news-item"><div class="ndot high"></div><div><div class="nhead"><span class="ntag geo">Geopolitical</span>US Senate debates new investment restrictions on Chinese tech firms</div><div class="nmeta">Bloomberg · 5h ago</div></div></div>
-      <div class="news-item"><div class="ndot medium"></div><div><div class="nhead"><span class="ntag reg">HFCAA</span>PCAOB confirms 2026 Chinese audit inspection schedule</div><div class="nmeta">WSJ · 1d ago</div></div></div>
-      <div class="news-item"><div class="ndot low"></div><div><div class="nhead"><span class="ntag byd">BYD</span>BYD reports record EV sales February 2026, up 42% year-on-year</div><div class="nmeta">FT · 1d ago</div></div></div>
-      <div class="news-item"><div class="ndot low"></div><div><div class="nhead"><span class="ntag xmi">Xiaomi</span>Xiaomi EV targets 300,000 deliveries in 2026</div><div class="nmeta">CNBC · 2d ago</div></div></div>
+  <div class="pnl">
+    <div class="ph"><div class="pt">News alerts</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">5 items</div></div>
+    <div class="nl">
+      <div class="ni"><div class="nd h"></div><div><div class="nh"><span class="nt nio">NIO</span>NIO posts wider Q4 loss — delivery growth slows despite new models</div><div class="nm">Reuters · 2h ago</div></div></div>
+      <div class="ni"><div class="nd h"></div><div><div class="nh"><span class="nt geo">Geopolitical</span>US Senate debates new restrictions on Chinese tech investments</div><div class="nm">Bloomberg · 5h ago</div></div></div>
+      <div class="ni"><div class="nd m"></div><div><div class="nh"><span class="nt reg">HFCAA</span>PCAOB confirms 2026 Chinese audit inspection schedule</div><div class="nm">WSJ · 1d ago</div></div></div>
+      <div class="ni"><div class="nd l"></div><div><div class="nh"><span class="nt byd">BYD</span>BYD reports record EV sales February 2026, up 42% year-on-year</div><div class="nm">FT · 1d ago</div></div></div>
+      <div class="ni"><div class="nd l"></div><div><div class="nh"><span class="nt xmi">Xiaomi</span>Xiaomi EV division targets 300,000 deliveries in 2026</div><div class="nm">CNBC · 2d ago</div></div></div>
     </div>
   </div>
 </div>
 
-<div class="kw-panel">
-  <div class="kw-title">Monitored alert keywords — triggers sound + screen flash</div>
-  <div class="kw-tags">
-    <span class="kw-tag hit">NIO delisting</span>
-    <span class="kw-tag">HFCAA</span>
-    <span class="kw-tag">PCAOB China</span>
-    <span class="kw-tag">Chinese stocks NYSE</span>
-    <span class="kw-tag">NIO SEC filing</span>
-    <span class="kw-tag">China sanctions</span>
-    <span class="kw-tag">Taiwan conflict</span>
-    <span class="kw-tag">NIO bankruptcy</span>
-    <span class="kw-tag">BYD delisting</span>
-    <span class="kw-tag">Xiaomi delisting</span>
-    <span class="kw-tag">NYSE China review</span>
-    <span class="kw-tag">NIO below $1</span>
+<div class="kwp">
+  <div class="kwt">Monitored alert keywords — triggers sound + red screen flash</div>
+  <div class="kwtags">
+    <span class="kwtag hit">NIO delisting</span><span class="kwtag">HFCAA</span><span class="kwtag">PCAOB China</span><span class="kwtag">Chinese stocks NYSE</span><span class="kwtag">NIO SEC filing</span><span class="kwtag">China sanctions</span><span class="kwtag">Taiwan conflict</span><span class="kwtag">NIO bankruptcy</span><span class="kwtag">BYD delisting</span><span class="kwtag">Xiaomi delisting</span><span class="kwtag">NYSE China review</span><span class="kwtag">NIO below $1</span>
   </div>
 </div>
 
-<div class="links-panel">
-  <div class="links-title">Quick links — dark pool, shorts & live data</div>
-  <div class="links-grid">
-    <a class="link-card" href="https://fintel.io/ss/us/nio" target="_blank"><div class="link-card-title">NIO Short + Dark Pool</div><div class="link-card-desc">Fintel — live short interest & dark pool</div></a>
-    <a class="link-card" href="https://fintel.io/ss/us/byddy" target="_blank"><div class="link-card-title">BYD Short + Dark Pool</div><div class="link-card-desc">Fintel — live short interest & dark pool</div></a>
-    <a class="link-card" href="https://unusualwhales.com/stocks/NIO" target="_blank"><div class="link-card-title">NIO Dark Pool Flow</div><div class="link-card-desc">Unusual Whales — options & dark pool</div></a>
-    <a class="link-card" href="https://chartmill.com/stock/quote/NIO/short-float" target="_blank"><div class="link-card-title">NIO Short Float %</div><div class="link-card-desc">Chartmill — short % of float</div></a>
-    <a class="link-card" href="https://finance.yahoo.com/quote/NIO/" target="_blank"><div class="link-card-title">NIO Full Quote</div><div class="link-card-desc">Yahoo Finance — news & financials</div></a>
-    <a class="link-card" href="https://finance.yahoo.com/quote/BYDDY/" target="_blank"><div class="link-card-title">BYD Full Quote</div><div class="link-card-desc">Yahoo Finance — news & financials</div></a>
-    <a class="link-card" href="https://finance.yahoo.com/quote/XIACF/" target="_blank"><div class="link-card-title">Xiaomi Full Quote</div><div class="link-card-desc">Yahoo Finance — news & financials</div></a>
-    <a class="link-card" href="https://www.google.com/alerts" target="_blank"><div class="link-card-title">Google Alerts</div><div class="link-card-desc">Set keyword email alerts</div></a>
+<div class="lkp">
+  <div class="lkt">Quick links — live prices, dark pool, shorts & data</div>
+  <div class="lkg">
+    <a class="lkc" href="https://finance.yahoo.com/quote/NIO/" target="_blank"><div class="lkct">NIO Live Price</div><div class="lkcd">Yahoo Finance — pre/after market</div></a>
+    <a class="lkc" href="https://finance.yahoo.com/quote/BYDDY/" target="_blank"><div class="lkct">BYD Live Price</div><div class="lkcd">Yahoo Finance — full quote</div></a>
+    <a class="lkc" href="https://finance.yahoo.com/quote/XIACF/" target="_blank"><div class="lkct">Xiaomi Live Price</div><div class="lkcd">Yahoo Finance — full quote</div></a>
+    <a class="lkc" href="https://fintel.io/ss/us/nio" target="_blank"><div class="lkct">NIO Short + Dark Pool</div><div class="lkcd">Fintel — live short & dark pool</div></a>
+    <a class="lkc" href="https://fintel.io/ss/us/byddy" target="_blank"><div class="lkct">BYD Short + Dark Pool</div><div class="lkcd">Fintel — live short & dark pool</div></a>
+    <a class="lkc" href="https://unusualwhales.com/stocks/NIO" target="_blank"><div class="lkct">NIO Dark Pool Flow</div><div class="lkcd">Unusual Whales — dark pool</div></a>
+    <a class="lkc" href="https://chartmill.com/stock/quote/NIO/short-float" target="_blank"><div class="lkct">NIO Short Float %</div><div class="lkcd">Chartmill — short % of float</div></a>
+    <a class="lkc" href="https://www.google.com/alerts" target="_blank"><div class="lkct">Google Alerts</div><div class="lkcd">Set keyword email alerts</div></a>
   </div>
 </div>
 
-<div class="footer">
-  <div>HP MARKET MONITOR v2.0 · PERSONAL USE ONLY</div>
-  <div>Prices: Yahoo Finance 15min delay · Dark pool/shorts: Fintel · Not financial advice</div>
-  <div id="footerTime">--</div>
+<div class="ftr">
+  <div>HP MARKET MONITOR v2.2 · PERSONAL USE ONLY</div>
+  <div>Prices: Yahoo Finance · Dark pool/shorts: Fintel · Not financial advice</div>
+  <div id="ft">--</div>
 </div>
 </div>
 
 <script>
 let soundOn=false,audioCtx=null,secs=300,timer;
-function toggleSound(){soundOn=!soundOn;const b=document.getElementById('soundBtn');if(soundOn){audioCtx=new(window.AudioContext||window.webkitAudioContext)();b.textContent='SOUND ON';b.classList.add('on')}else{b.textContent='SOUND OFF';b.classList.remove('on')}}
-function playAlarm(){if(!soundOn||!audioCtx)return;[0,.35,.7].forEach(t=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.setValueAtTime(900,audioCtx.currentTime+t);o.frequency.linearRampToValueAtTime(600,audioCtx.currentTime+t+.3);g.gain.setValueAtTime(.45,audioCtx.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+t+.32);o.start(audioCtx.currentTime+t);o.stop(audioCtx.currentTime+t+.35)})}
-function triggerAlert(msg){document.getElementById('alertBanner').classList.add('show');document.getElementById('alertMsg').textContent=msg;document.body.classList.remove('flash');void document.body.offsetWidth;document.body.classList.add('flash');playAlarm();if(Notification.permission==='granted')new Notification('HP MARKET ALERT',{body:msg})}
-function testAlert(){if(!soundOn){soundOn=true;audioCtx=new(window.AudioContext||window.webkitAudioContext)();document.getElementById('soundBtn').textContent='SOUND ON';document.getElementById('soundBtn').classList.add('on')}triggerAlert('TEST ALERT — NIO delisting mentioned in breaking news feed')}
-function fmt(n){if(!n&&n!==0)return'--';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return n.toFixed(2)}
-function fmtP(n){return n?'$'+parseFloat(n).toFixed(2):'--'}
-function cc(v){return v>0?'up':v<0?'down':'neutral'}
-function ar(v){return v>0?'▲':v<0?'▼':''}
-async function fetchStock(sym,ids){
-  try{
-    const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`;
-    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    const d=await r.json();
-    const q=d?.chart?.result?.[0]?.meta;
-    if(!q)return;
-    const price=q.regularMarketPrice,prev=q.chartPreviousClose||q.previousClose,change=price-prev,pct=(change/prev)*100;
-    document.getElementById(ids.price).textContent=fmtP(price);
-    document.getElementById(ids.change).innerHTML=`<span class="${cc(change)}">${ar(change)} ${Math.abs(change).toFixed(2)} (${Math.abs(pct).toFixed(2)}%) today</span>`;
-    const pre=q.preMarketPrice,after=q.postMarketPrice,vol=q.regularMarketVolume,avg=q.averageDailyVolume3Month||q.averageDailyVolume10Day;
-    if(pre){const pc=pre-price,pp=(pc/price)*100;document.getElementById(ids.pre).textContent=fmtP(pre);document.getElementById(ids.preChg).innerHTML=`<span class="${cc(pc)}">${ar(pc)} ${Math.abs(pp).toFixed(2)}%</span>`}else{document.getElementById(ids.pre).textContent='N/A'}
-    if(after){const ac=after-price,ap=(ac/price)*100;document.getElementById(ids.after).textContent=fmtP(after);document.getElementById(ids.afterChg).innerHTML=`<span class="${cc(ac)}">${ar(ac)} ${Math.abs(ap).toFixed(2)}%</span>`}else{document.getElementById(ids.after).textContent='N/A'}
-    if(vol)document.getElementById(ids.vol).textContent=fmt(vol);
-    if(q.fiftyTwoWeekLow&&q.fiftyTwoWeekHigh)document.getElementById(ids.range).textContent=`$${q.fiftyTwoWeekLow.toFixed(2)} – $${q.fiftyTwoWeekHigh.toFixed(2)}`;
-    if(ids.tape){const str=`$${price.toFixed(2)} <span class="${cc(change)}">${ar(change)}${Math.abs(pct).toFixed(1)}%</span>`;const t=document.getElementById(ids.tape);const t2=document.getElementById(ids.tape+'2');if(t)t.innerHTML=str;if(t2)t2.innerHTML=str}
-    if(ids.volToday&&vol){document.getElementById(ids.volToday).textContent=fmt(vol);if(avg)document.getElementById(ids.volAvg).textContent=fmt(avg);const pb=avg?Math.min((vol/avg)*100,100):50;const bar=document.getElementById(ids.volBar);bar.style.width=pb+'%';bar.style.background=vol>avg?'var(--green)':'var(--blue)'}
-  }catch(e){console.log('fetch err',sym,e)}
+
+function toggleSound(){
+  soundOn=!soundOn;
+  const b=document.getElementById('sndBtn');
+  if(soundOn){
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    b.textContent='🔊 SOUND ON';b.classList.add('on');
+  }else{
+    b.textContent='🔇 SOUND OFF';b.classList.remove('on');
+  }
 }
+
+function playAlarm(){
+  if(!soundOn||!audioCtx)return;
+  [0,.35,.7].forEach(t=>{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(900,audioCtx.currentTime+t);
+    o.frequency.linearRampToValueAtTime(600,audioCtx.currentTime+t+.3);
+    g.gain.setValueAtTime(.5,audioCtx.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+t+.32);
+    o.start(audioCtx.currentTime+t);o.stop(audioCtx.currentTime+t+.35);
+  });
+}
+
+function triggerAlert(msg){
+  document.getElementById('ab').classList.add('show');
+  document.getElementById('amsg').textContent=msg;
+  document.body.classList.remove('flash');
+  void document.body.offsetWidth;
+  document.body.classList.add('flash');
+  playAlarm();
+  if(Notification.permission==='granted')new Notification('HP MARKET ALERT',{body:msg});
+}
+
+function testAlert(){
+  if(!soundOn){
+    soundOn=true;
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    document.getElementById('sndBtn').textContent='🔊 SOUND ON';
+    document.getElementById('sndBtn').classList.add('on');
+  }
+  triggerAlert('TEST ALERT — NIO delisting mentioned in breaking news feed');
+}
+
+function fmt(n){
+  if(!n&&n!==0)return'--';
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(1)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(0)+'K';
+  return n.toFixed(2);
+}
+function fmtP(n){return n?'$'+parseFloat(n).toFixed(2):'--'}
+function cc(v){return v>0?'up':v<0?'down':'neu'}
+function ar(v){return v>0?'▲':v<0?'▼':''}
+
+async function fetchStock(sym,ids){
+  const proxies=[
+    `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`)}`,
+    `https://thingproxy.freeboard.io/fetch/https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`
+  ];
+  for(const url of proxies){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+      const d=await r.json();
+      const q=d?.chart?.result?.[0]?.meta;
+      if(!q||!q.regularMarketPrice)continue;
+      const price=q.regularMarketPrice,prev=q.chartPreviousClose||q.previousClose||price;
+      const change=price-prev,pct=(change/prev)*100;
+      document.getElementById(ids.price).textContent=fmtP(price);
+      document.getElementById(ids.chg).innerHTML=`<span class="${cc(change)}">${ar(change)} ${Math.abs(change).toFixed(2)} (${Math.abs(pct).toFixed(2)}%) today</span>`;
+      const pre=q.preMarketPrice,aft=q.postMarketPrice,vol=q.regularMarketVolume,avg=q.averageDailyVolume3Month;
+      if(pre){const pc=pre-price,pp=(pc/price)*100;document.getElementById(ids.pre).textContent=fmtP(pre);document.getElementById(ids.prec).innerHTML=`<span class="${cc(pc)}">${ar(pc)}${Math.abs(pp).toFixed(1)}%</span>`;}
+      else document.getElementById(ids.pre).textContent='N/A (market hours)';
+      if(aft){const ac=aft-price,ap=(ac/price)*100;document.getElementById(ids.aft).textContent=fmtP(aft);document.getElementById(ids.aftc).innerHTML=`<span class="${cc(ac)}">${ar(ac)}${Math.abs(ap).toFixed(1)}%</span>`;}
+      else document.getElementById(ids.aft).textContent='N/A (market hours)';
+      if(vol)document.getElementById(ids.vol).textContent=fmt(vol);
+      if(q.fiftyTwoWeekLow&&q.fiftyTwoWeekHigh)document.getElementById(ids.rng).textContent=`$${q.fiftyTwoWeekLow.toFixed(2)} – $${q.fiftyTwoWeekHigh.toFixed(2)}`;
+      const tstr=`$${price.toFixed(2)} <span class="${cc(change)}">${ar(change)}${Math.abs(pct).toFixed(1)}%</span>`;
+      [ids.t1,ids.t2].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=tstr;});
+      if(ids.vt&&vol){document.getElementById(ids.vt).textContent=fmt(vol);if(avg){document.getElementById(ids.va).textContent=fmt(avg);const pb=Math.min((vol/avg)*100,100);const bar=document.getElementById(ids.vb);bar.style.width=pb+'%';bar.style.background=vol>avg?'var(--green)':'var(--blue)';}}
+      return;
+    }catch(e){continue;}
+  }
+  document.getElementById(ids.price).innerHTML=`<span style="font-size:12px;color:var(--text3)">unavailable</span>`;
+  document.getElementById(ids.chg).innerHTML=`<a href="https://finance.yahoo.com/quote/${sym}/" target="_blank" style="color:var(--blue);font-size:11px;font-family:var(--mono)">View on Yahoo Finance →</a>`;
+}
+
+function updateTime(){
+  const now=new Date();
+  const t=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('lu').textContent=t;
+  document.getElementById('ft').textContent=now.toLocaleDateString('en-GB')+' · '+t;
+  document.getElementById('rt').textContent='Updated '+t;
+}
+
 async function fetchAll(){
-  const now=new Date(),t=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('lastUpdated').textContent=t;
-  document.getElementById('footerTime').textContent=now.toLocaleDateString('en-GB')+' · '+t;
-  document.getElementById('riskTime').textContent='Updated '+t;
-  await fetchStock('NIO',{price:'nio-price',change:'nio-change',pre:'nio-pre',preChg:'nio-pre-chg',after:'nio-after',afterChg:'nio-after-chg',vol:'nio-vol',range:'nio-range',tape:'t-nio',volToday:'vol-nio-today',volAvg:'vol-nio-avg',volBar:'vol-nio-bar'});
-  await fetchStock('BYDDY',{price:'byd-price',change:'byd-change',pre:'byd-pre',preChg:'byd-pre-chg',after:'byd-after',afterChg:'byd-after-chg',vol:'byd-vol',range:'byd-range',tape:'t-byd'});
-  await fetchStock('XIACF',{price:'xmi-price',change:'xmi-change',pre:'xmi-pre',preChg:'xmi-pre-chg',after:'xmi-after',afterChg:'xmi-after-chg',vol:'xmi-vol',range:'xmi-range',tape:'t-xmi'});
+  updateTime();
+  await fetchStock('NIO',{price:'np',chg:'nc',pre:'np-pre',prec:'np-prec',aft:'np-aft',aftc:'np-aftc',vol:'np-vol',rng:'np-rng',t1:'t1',t2:'t4',vt:'vn-t',va:'vn-a',vb:'vn-b'});
+  await fetchStock('BYDDY',{price:'bp',chg:'bc',pre:'bp-pre',prec:'bp-prec',aft:'bp-aft',aftc:'bp-aftc',vol:'bp-vol',rng:'bp-rng',t1:'t2',t2:'t5'});
+  await fetchStock('XIACF',{price:'xp',chg:'xc',pre:'xp-pre',prec:'xp-prec',aft:'xp-aft',aftc:'xp-aftc',vol:'xp-vol',rng:'xp-rng',t1:'t3',t2:'t6'});
   startCountdown();
 }
-function startCountdown(){clearInterval(timer);secs=300;timer=setInterval(()=>{secs--;const m=Math.floor(secs/60),s=secs%60;document.getElementById('countdown').textContent=m+':'+(s<10?'0':'')+s;if(secs<=0){clearInterval(timer);fetchAll()}},1000)}
+
+function startCountdown(){
+  clearInterval(timer);secs=300;
+  timer=setInterval(()=>{
+    secs--;
+    const m=Math.floor(secs/60),s=secs%60;
+    document.getElementById('cd').textContent=m+':'+(s<10?'0':'')+s;
+    if(secs<=0){clearInterval(timer);fetchAll();}
+  },1000);
+}
+
 if(Notification.permission==='default')Notification.requestPermission();
+setInterval(updateTime,1000);
 fetchAll();
 </script>
 </body>
