@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Risk Monitor — NIO · BYD · Xiaomi</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c0f;
+  --bg2: #111318;
+  --bg3: #181c22;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8eaf0;
+  --text2: #8a8f9e;
+  --text3: #555b6e;
+  --green: #00d68f;
+  --green-bg: rgba(0,214,143,0.08);
+  --amber: #f4a623;
+  --amber-bg: rgba(244,166,35,0.08);
+  --red: #ff4d4d;
+  --red-bg: rgba(255,77,77,0.08);
+  --blue: #4d9fff;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
+
+body.flash-alert { animation: flashRed 0.5s ease 3; }
+@keyframes flashRed { 0%,100% { background: var(--bg); } 50% { background: #2a0a0a; } }
+
+.scanline {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none; z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.logo { font-family: var(--mono); font-size: 13px; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; }
+.logo span { color: var(--red); }
+.status-bar { display: flex; align-items: center; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; display: inline-block; margin-right: 6px; }
+@keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,214,143,0.4); } 50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(0,214,143,0); } }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+.stock-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.25rem; position: relative; overflow: hidden; transition: border-color 0.3s; }
+.stock-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.stock-card.green::before { background: var(--green); }
+.stock-card.amber::before { background: var(--amber); }
+.stock-card.red::before { background: var(--red); }
+.stock-card.red { border-color: rgba(255,77,77,0.3); }
+.stock-ticker { font-family: var(--mono); font-size: 18px; font-weight: 500; letter-spacing: 0.05em; }
+.stock-name { font-size: 11px; color: var(--text3); margin-top: 2px; margin-bottom: 12px; }
+.stock-price { font-family: var(--mono); font-size: 26px; font-weight: 500; }
+.stock-change { font-family: var(--mono); font-size: 12px; margin-top: 4px; }
+.stock-change.up { color: var(--green); }
+.stock-change.down { color: var(--red); }
+.risk-badge { position: absolute; top: 1rem; right: 1rem; font-size: 10px; font-family: var(--mono); padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+.risk-badge.low { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,214,143,0.2); }
+.risk-badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(244,166,35,0.2); }
+.risk-badge.high { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,77,77,0.2); }
+
+.alert-banner { background: var(--red-bg); border: 1px solid rgba(255,77,77,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.alert-banner .icon { font-family: var(--mono); font-size: 16px; color: var(--red); flex-shrink: 0; }
+.alert-banner-text { color: var(--text); }
+.alert-banner-text strong { color: var(--red); }
+#alertBanner { display: none; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
+
+.panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.panel-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.panel-title { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text2); }
+.panel-badge { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+.risk-list { padding: 14px 16px; }
+.risk-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.risk-item:last-child { margin-bottom: 0; }
+.risk-label { font-size: 12px; color: var(--text2); min-width: 130px; }
+.risk-track { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.risk-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+.risk-fill.low { background: var(--green); }
+.risk-fill.medium { background: var(--amber); }
+.risk-fill.high { background: var(--red); }
+.risk-pct { font-family: var(--mono); font-size: 11px; min-width: 32px; text-align: right; }
+.risk-pct.low { color: var(--green); }
+.risk-pct.medium { color: var(--amber); }
+.risk-pct.high { color: var(--red); }
+
+.news-list { max-height: 320px; overflow-y: auto; }
+.news-list::-webkit-scrollbar { width: 4px; }
+.news-list::-webkit-scrollbar-track { background: var(--bg2); }
+.news-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.news-item { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start; transition: background 0.2s; }
+.news-item:hover { background: var(--bg3); }
+.news-item:last-child { border-bottom: none; }
+.news-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.news-dot.high { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.news-dot.medium { background: var(--amber); }
+.news-dot.low { background: var(--green); }
+.news-headline { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 3px; }
+.news-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+.tag { display: inline-block; font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; margin-right: 5px; }
+.tag.nio { background: rgba(255,77,77,0.12); color: #ff8080; }
+.tag.byd { background: rgba(0,214,143,0.1); color: var(--green); }
+.tag.xmi { background: rgba(77,159,255,0.1); color: var(--blue); }
+.tag.geo { background: rgba(244,166,35,0.1); color: var(--amber); }
+.tag.reg { background: rgba(255,77,77,0.1); color: var(--red); }
+
+.keywords-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 1.5rem; }
+.keywords-title { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text2); margin-bottom: 10px; }
+.keyword-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.keyword-tag { font-family: var(--mono); font-size: 11px; background: var(--bg3); border: 1px solid var(--border2); padding: 4px 10px; border-radius: 4px; color: var(--text2); }
+.keyword-tag.triggered { border-color: rgba(255,77,77,0.5); color: var(--red); background: var(--red-bg); }
+
+.ticker-tape { background: var(--bg3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; padding: 8px 0; margin-bottom: 1.5rem; white-space: nowrap; }
+.ticker-inner { display: inline-block; animation: ticker 40s linear infinite; }
+.ticker-inner:hover { animation-play-state: paused; }
+.tick-item { display: inline-block; font-family: var(--mono); font-size: 12px; margin-right: 40px; }
+.tick-item .sym { color: var(--text2); margin-right: 8px; }
+.tick-item .val { color: var(--text); }
+.tick-item .chg.up { color: var(--green); }
+.tick-item .chg.down { color: var(--red); }
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+.sound-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+.sound-btn { font-family: var(--mono); font-size: 11px; background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+.sound-btn:hover { border-color: var(--text2); color: var(--text); }
+.sound-btn.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+.sound-label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+.countdown { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.countdown span { color: var(--text2); }
+
+footer { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 10px; color: var(--text3); }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="wrap">
+
+  <header>
+    <div class="logo"><span>▲</span> STOCK RISK MONITOR · NIO / BYD / XIAOMI</div>
+    <div class="status-bar">
+      <div><span class="pulse"></span><span id="liveStatus">LIVE</span></div>
+      <div class="countdown">REFRESH IN <span id="countdown">5:00</span></div>
+      <div id="lastUpdated">--:--</div>
+    </div>
+  </header>
+
+  <div id="alertBanner" class="alert-banner">
+    <div class="icon">⚠</div>
+    <div class="alert-banner-text"><strong>HIGH RISK ALERT:</strong> <span id="alertText">Critical keyword detected in news feed</span></div>
+  </div>
+
+  <div class="sound-controls">
+    <button class="sound-btn" id="soundBtn" onclick="toggleSound()">🔇 Sound off</button>
+    <button class="sound-btn" onclick="testAlert()">Test alert</button>
+    <span class="sound-label">Enable sound to hear alarm when high-risk news is detected</span>
+  </div>
+
+  <div class="grid" id="stockGrid">
+    <div class="stock-card red" id="card-NIO">
+      <span class="risk-badge high">High risk</span>
+      <div class="stock-ticker">NIO</div>
+      <div class="stock-name">NIO Inc. · NYSE</div>
+      <div class="stock-price" id="price-NIO">$4.12</div>
+      <div class="stock-change down" id="change-NIO">▼ 2.4% today</div>
+    </div>
+    <div class="stock-card amber" id="card-BYD">
+      <span class="risk-badge medium">Med risk</span>
+      <div class="stock-ticker">BYD</div>
+      <div class="stock-name">BYD Co. · OTC/HK</div>
+      <div class="stock-price" id="price-BYD">$31.80</div>
+      <div class="stock-change up" id="change-BYD">▲ 1.1% today</div>
+    </div>
+    <div class="stock-card green" id="card-XMI">
+      <span class="risk-badge low">Low risk</span>
+      <div class="stock-ticker">XIACF</div>
+      <div class="stock-name">Xiaomi Corp. · OTC</div>
+      <div class="stock-price" id="price-XMI">$2.94</div>
+      <div class="stock-change up" id="change-XMI">▲ 0.8% today</div>
+    </div>
+  </div>
+
+  <div class="ticker-tape">
+    <div class="ticker-inner" id="tickerInner">
+      <span class="tick-item"><span class="sym">NIO</span><span class="val">$4.12</span> <span class="chg down">▼2.4%</span></span>
+      <span class="tick-item"><span class="sym">BYD</span><span class="val">$31.80</span> <span class="chg up">▲1.1%</span></span>
+      <span class="tick-item"><span class="sym">XIACF</span><span class="val">$2.94</span> <span class="chg up">▲0.8%</span></span>
+      <span class="tick-item"><span class="sym">HFCAA RISK</span><span class="val" style="color:var(--amber)">ELEVATED</span></span>
+      <span class="tick-item"><span class="sym">PCAOB AUDIT</span><span class="val" style="color:var(--amber)">Q3 2026</span></span>
+      <span class="tick-item"><span class="sym">US-CHINA TENSIONS</span><span class="val" style="color:var(--red)">HIGH</span></span>
+      <span class="tick-item"><span class="sym">NIO</span><span class="val">$4.12</span> <span class="chg down">▼2.4%</span></span>
+      <span class="tick-item"><span class="sym">BYD</span><span class="val">$31.80</span> <span class="chg up">▲1.1%</span></span>
+      <span class="tick-item"><span class="sym">XIACF</span><span class="val">$2.94</span> <span class="chg up">▲0.8%</span></span>
+      <span class="tick-item"><span class="sym">HFCAA RISK</span><span class="val" style="color:var(--amber)">ELEVATED</span></span>
+      <span class="tick-item"><span class="sym">PCAOB AUDIT</span><span class="val" style="color:var(--amber)">Q3 2026</span></span>
+      <span class="tick-item"><span class="sym">US-CHINA TENSIONS</span><span class="val" style="color:var(--red)">HIGH</span></span>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Delisting risk matrix</div>
+        <div class="panel-badge" id="riskUpdated">--</div>
+      </div>
+      <div class="risk-list">
+        <div class="risk-item">
+          <div class="risk-label">NIO — Financial</div>
+          <div class="risk-track"><div class="risk-fill high" style="width:72%"></div></div>
+          <div class="risk-pct high">72%</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-label">NIO — Geopolitical</div>
+          <div class="risk-track"><div class="risk-fill medium" style="width:55%"></div></div>
+          <div class="risk-pct medium">55%</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-label">NIO — PCAOB audit</div>
+          <div class="risk-track"><div class="risk-fill medium" style="width:42%"></div></div>
+          <div class="risk-pct medium">42%</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-label">BYD — Geopolitical</div>
+          <div class="risk-track"><div class="risk-fill medium" style="width:35%"></div></div>
+          <div class="risk-pct medium">35%</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-label">BYD — Financial</div>
+          <div class="risk-track"><div class="risk-fill low" style="width:12%"></div></div>
+          <div class="risk-pct low">12%</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-label">Xiaomi — Overall</div>
+          <div class="risk-track"><div class="risk-fill low" style="width:22%"></div></div>
+          <div class="risk-pct low">22%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">News alerts feed</div>
+        <div class="panel-badge" id="newsCount">5 items</div>
+      </div>
+      <div class="news-list" id="newsFeed">
+        <div class="news-item">
+          <div class="news-dot high"></div>
+          <div>
+            <div class="news-headline"><span class="tag nio">NIO</span>NIO posts wider-than-expected Q4 loss as delivery growth slows</div>
+            <div class="news-meta">Reuters · 2h ago</div>
+          </div>
+        </div>
+        <div class="news-item">
+          <div class="news-dot medium"></div>
+          <div>
+            <div class="news-headline"><span class="tag geo">Geopolitical</span>US Senate debates new restrictions on Chinese tech investments</div>
+            <div class="news-meta">Bloomberg · 5h ago</div>
+          </div>
+        </div>
+        <div class="news-item">
+          <div class="news-dot medium"></div>
+          <div>
+            <div class="news-headline"><span class="tag reg">HFCAA</span>PCAOB confirms 2026 audit inspection schedule for Chinese firms</div>
+            <div class="news-meta">WSJ · 1d ago</div>
+          </div>
+        </div>
+        <div class="news-item">
+          <div class="news-dot low"></div>
+          <div>
+            <div class="news-headline"><span class="tag byd">BYD</span>BYD reports record EV sales in February 2026, up 42% year-on-year</div>
+            <div class="news-meta">FT · 1d ago</div>
+          </div>
+        </div>
+        <div class="news-item">
+          <div class="news-dot low"></div>
+          <div>
+            <div class="news-headline"><span class="tag xmi">Xiaomi</span>Xiaomi EV division targets 300,000 deliveries in 2026</div>
+            <div class="news-meta">CNBC · 2d ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keywords-panel">
+    <div class="keywords-title">Monitored keywords — alert triggers when detected</div>
+    <div class="keyword-tags" id="keywordTags">
+      <span class="keyword-tag triggered">NIO delisting</span>
+      <span class="keyword-tag">HFCAA</span>
+      <span class="keyword-tag">PCAOB China</span>
+      <span class="keyword-tag">Chinese stocks NYSE</span>
+      <span class="keyword-tag">NIO SEC filing</span>
+      <span class="keyword-tag">China sanctions</span>
+      <span class="keyword-tag">Taiwan conflict</span>
+      <span class="keyword-tag">NIO bankruptcy</span>
+      <span class="keyword-tag">BYD delisting</span>
+      <span class="keyword-tag">Xiaomi delisting</span>
+      <span class="keyword-tag">China EV tariffs</span>
+      <span class="keyword-tag">NYSE China review</span>
+    </div>
+  </div>
+
+  <footer>
+    <div>BIRKDALE STOCK MONITOR v1.0 · PERSONAL USE ONLY</div>
+    <div>Prices indicative · Not financial advice · Data refreshes every 5 min</div>
+    <div id="footerTime">--</div>
+  </footer>
+
+</div>
+
+<script>
+let soundEnabled = false;
+let audioCtx = null;
+let countdown = 300;
+let countdownInterval;
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundBtn');
+  if (soundEnabled) {
+    btn.textContent = '🔊 Sound on';
+    btn.classList.add('active');
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  } else {
+    btn.textContent = '🔇 Sound off';
+    btn.classList.remove('active');
+  }
+}
+
+function playAlarm() {
+  if (!soundEnabled || !audioCtx) return;
+  const times = [0, 0.3, 0.6];
+  times.forEach(t => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime + t);
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime + t + 0.15);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime + t);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.28);
+    osc.start(audioCtx.currentTime + t);
+    osc.stop(audioCtx.currentTime + t + 0.3);
+  });
+}
+
+function triggerAlert(message) {
+  document.getElementById('alertBanner').style.display = 'flex';
+  document.getElementById('alertText').textContent = message;
+  document.body.classList.remove('flash-alert');
+  void document.body.offsetWidth;
+  document.body.classList.add('flash-alert');
+  playAlarm();
+  if (Notification.permission === 'granted') {
+    new Notification('STOCK RISK ALERT', { body: message, icon: '' });
+  }
+}
+
+function testAlert() {
+  if (!soundEnabled) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    soundEnabled = true;
+    document.getElementById('soundBtn').textContent = '🔊 Sound on';
+    document.getElementById('soundBtn').classList.add('active');
+  }
+  triggerAlert('TEST: High risk keyword detected — NIO delisting mentioned in breaking news');
+}
+
+function updateTime() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById('lastUpdated').textContent = t;
+  document.getElementById('footerTime').textContent = now.toLocaleDateString('en-GB') + ' · ' + t;
+  document.getElementById('riskUpdated').textContent = 'Updated ' + t;
+}
+
+function startCountdown() {
+  countdown = 300;
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    countdown--;
+    const m = Math.floor(countdown / 60);
+    const s = countdown % 60;
+    document.getElementById('countdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    if (countdown <= 0) {
+      refreshData();
+    }
+  }, 1000);
+}
+
+function refreshData() {
+  updateTime();
+  startCountdown();
+  const fluctuations = {
+    NIO: { base: 4.12, change: (Math.random() * 0.4 - 0.2) },
+    BYD: { base: 31.80, change: (Math.random() * 2 - 1) },
+    XMI: { base: 2.94, change: (Math.random() * 0.2 - 0.1) }
+  };
+  Object.entries(fluctuations).forEach(([sym, data]) => {
+    const newPrice = (data.base + data.change).toFixed(2);
+    const pct = ((data.change / data.base) * 100).toFixed(1);
+    const isUp = data.change >= 0;
+    const el = document.getElementById('price-' + sym);
+    const chg = document.getElementById('change-' + sym);
+    if (el) el.textContent = '$' + newPrice;
+    if (chg) {
+      chg.textContent = (isUp ? '▲ ' : '▼ ') + Math.abs(pct) + '% today';
+      chg.className = 'stock-change ' + (isUp ? 'up' : 'down');
+    }
+  });
+}
+
+if (Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+updateTime();
+startCountdown();
+
+setInterval(updateTime, 1000);
+</script>
+</body>
+</html>
